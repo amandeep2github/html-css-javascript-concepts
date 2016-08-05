@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>risk-mapping-poc</title>
+<style>
+div.hidden {
+    display: none;
+}
+div.error {
+	color: red;
+}
+</style>
+<script type="text/javascript" src="/js/lib/jquery/1.12.4/jquery.js"></script>
+<script type="text/javascript">
+	function addFunction(){
+		if(!validateSelection()){
+			console.log("Please select a value");
+			return;
+		}
+		if(!validateNoDuplicate()){
+			return;
+		}
+		var cloneIt = $('#cloneit table tr').clone();
+		//console.log(cloneIt);
+		$('#container table tbody').append(cloneIt);
+	}
+	
+	function deleteIt(ele){
+		console.log('delete it');
+		console.log(ele);
+		var parentTr = $(ele).closest('tr');
+		$(parentTr).remove();
+	}
+	
+	function validateNoDuplicate(){
+		debugger;
+		var valid = true;
+		var dataMap = [];
+		$('#container table tbody tr').each(function(){
+			debugger;
+			var value = $(this).find('select').val();
+			if(dataMap.length == 0){
+				dataMap.push({val:value, ele:this});
+			}else{
+				for(var i=0; i < dataMap.length; i++){
+					var dataVal = dataMap[i];
+					if(dataVal.val == value){
+						console.log('duplicate - '+ value);
+						highlight(dataVal.ele,'duplicate selection');
+						highlight(this,'duplicate selection');
+						valid = false;
+						break;
+					}
+					
+				}
+				if(!valid){
+					return false;
+				}
+				dataMap.push({val:value, ele:this});
+				console.log(dataMap);
+			}
+			
+		});	
+		return valid;
+	}
+	
+	function validateSelection(){
+		var valid = true;
+		$('#container table tbody tr').each(function(){
+			
+			if(!$(this).find('select').val()){
+				highlight(this, "Please select a value");
+				valid = false;
+				return false;
+			}
+		});	
+		return valid;
+	}
+	
+	function highlight(ele, message){
+		$(ele).find('.error').text(message);
+		$(ele).find('.error').show();
+		$(ele).find('.error').delay(3000).fadeOut('slow');
+		//$('#container div .error').delay(5000).fadeOut('slow');
+	}
+</script>
+</head>
+<body>
+<h1>Dynamic add/modify/delete rows</h1>
+<div id="cloneit" class="hidden">
+	<table>
+	<tr>
+	<td>val1 1</td>
+	<td><select><option disabled selected > -- select -- </option><option value="1">one</option><option value="2">two</option><option value="3">three</option></select></td>	
+	<td><button id="action-button" type="button" onclick="javascript:deleteIt(this);">delete</button></td>
+	<td><div class="error"></div></td>
+	</tr>
+	</table>
+</div>
+<div id="container">
+	<table>
+		<thead>
+			<tr>
+				<th>col1</th>
+				<th>col2</th>
+				<th>action</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>val1 1</td>
+				<td><select><option disabled selected value> -- select -- </option><option value="1">one</option><option value="2">two</option><option value="3">three</option></select></td>
+				<td><button id="action-button" type="button" onclick="javascript:deleteIt(this);">delete</button></td>
+				<td><div class="error"></div></td>
+			</tr>
+		</tbody>
+	</table>
+	<a href="javascript:addFunction();">add</a>
+</div>
+</body>
+</html>

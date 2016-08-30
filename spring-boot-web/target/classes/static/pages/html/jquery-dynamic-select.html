@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<script type="text/javascript" src="/js/lib/jquery/1.12.4/jquery.js"></script>
+<script type="text/javascript">
+	var riskCategoryMap = new Object();
+	var riskMap = new Object();
+	riskCategoryMap[30485] = [];
+	riskCategoryMap[46943] = [];
+	riskCategoryMap[46944] = [];
+
+	var risk = createRiskObject(46990, 'Curr', 'narrative curr');
+	riskCategoryMap[30485].push(risk);
+	riskMap[risk.id] = risk;
+
+	risk = createRiskObject(46991, 'Cred', 'narrative cred');
+	riskCategoryMap[30485].push(risk);
+	riskMap[risk.id] = risk;
+
+	risk = createRiskObject(46992, 'Comm', 'narrative comm');
+	riskCategoryMap[30485].push(risk);
+	riskMap[risk.id] = risk;
+
+	risk = createRiskObject(47008, 'Mgr', 'narrative Mgr');
+	riskCategoryMap[46943].push(risk);
+	riskMap[risk.id] = risk;
+
+	risk = createRiskObject(47009, 'Liq', 'narrative Liq');
+	riskCategoryMap[46943].push(risk);
+	riskMap[risk.id] = risk;
+
+	risk = createRiskObject(47010, 'Der', 'narrative Der');
+	riskCategoryMap[46943].push(risk);
+	riskMap[risk.id] = risk;
+
+	risk = createRiskObject(47001, 'Cntr', 'narrative Cntr');
+	riskCategoryMap[46944].push(risk);
+	riskMap[risk.id] = risk;
+
+	risk = createRiskObject(47002, 'Opr', 'narrative Opr');
+	riskCategoryMap[46944].push(risk);
+	riskMap[risk.id] = risk;
+
+	risk = createRiskObject(47003, 'Rqf', 'narrative Rqf');
+	riskCategoryMap[46944].push(risk);
+	riskMap[risk.id] = risk;
+
+	function createRiskObject(id, value, narrative) {
+		return {
+			id : id,
+			value : value,
+			narrative : narrative
+
+		}
+
+	}
+	
+	function addFunction(){
+		if(!validateSelection()){
+			console.log("Please select a value");
+			return;
+		}
+		if(!validateNoDuplicate()){
+			return;
+		} 
+		var cloneIt = $('#cloneit table tr').clone();
+		//console.log(cloneIt);
+		$(cloneIt).find('#risk-category').change(riskCategoryHandler);
+		$('#container table tbody').append(cloneIt);
+	}
+	
+	function validateNoDuplicate(){
+		//debugger;
+		var valid = true;
+		var dataMap = [];
+		$('#container table tbody tr').each(function(){
+			//debugger;
+			var valueRiskCategory = $(this).find('#risk-category').val();
+			var valueRisk = $(this).find('#risk').val();
+			var value = valueRiskCategory+'#'+valueRisk;
+			if(dataMap.length == 0){
+				dataMap.push({val:value, ele:this});
+			}else{
+				for(var i=0; i < dataMap.length; i++){
+					var dataVal = dataMap[i];
+					if(dataVal.val == value){
+						console.log('duplicate - '+ value);
+						highlight(dataVal.ele,'duplicate selection');
+						highlight(this,'duplicate selection');
+						valid = false;
+						break;
+					}
+					
+				}
+				if(!valid){
+					return false;
+				}
+				dataMap.push({val:value, ele:this});
+				console.log(dataMap);
+			}
+			
+		});	
+		return valid;
+	}
+	
+	function validateSelection(){
+		var valid = true;
+		$('#container table tbody .not-null').each(function(){
+			
+			if(!$(this).val()){
+				console.log(this.id);
+				highlight($(this).closest('tr'), "Please select a value");
+				valid = false;
+				return false;
+			}
+		});	
+		return valid;
+	}
+	
+	function highlight(ele, message){
+		$(ele).find('.error').text(message);
+		$(ele).find('.error').show();
+		$(ele).find('.error').delay(3000).fadeOut('slow');
+		//$('#container div .error').delay(5000).fadeOut('slow');
+	}
+	
+	function deleteIt(ele){
+		console.log('delete it');
+		console.log(ele);
+		var parentTr = $(ele).closest('tr');
+		$(parentTr).remove();
+	}
+
+	var riskHandler = function(e) {
+		//console.log(e.data.pos);
+		var risk = riskMap[this.value];
+		var narrativeEle = $(e.target).closest('tr').find('#narrative');
+		if (risk) {
+			narrativeEle.text(risk.narrative);
+		} else {
+			narrativeEle.text('');
+		}
+	}
+
+	var riskCategoryHandler = function(e) {
+		console.log(e.target.id);
+		var riskEle = $(e.target).closest('tr').find('#risk');
+		riskEle.unbind('change');
+		riskEle.empty();
+		$.each(riskCategoryMap[this.value], function(index) {
+			if (index == 0) {
+				riskEle.append($("<option />"));
+			}
+			riskEle.append($("<option />").val(this.id).text(this.value));
+		});
+		riskEle.on('change', riskHandler);
+	}
+
+	$(document).ready(function() {
+		//$('#risk-category').change(riskCategoryHandler);
+		$("select[id~='risk-category']").each(function(){
+			console.log(this.id);
+			$(this).change(riskCategoryHandler);
+		});
+
+	});
+</script>
+<style type="text/css">
+div.hidden {
+	display: none;
+}
+
+div.error {
+	color: red;
+}
+</style>
+</head>
+<body>
+	<div id="cloneit" class="hidden">
+		<table>
+			<tr>
+				<td><select id="risk-category" class="not-null">
+							<option />
+							<option value="30485">30485</option>
+							<option value="46943">46943</option>
+							<option value="46944">46944</option>
+					</select></td>
+					<td><select id="risk" class="not-null"></select></td>
+					<td><textarea id="narrative" rows="1" cols="20" readonly></textarea></td>
+				<td><button id="action-button" type="button"
+						onclick="javascript:deleteIt(this);">delete</button></td>
+				<td><div class="error"></div></td>
+			</tr>
+		</table>
+	</div>
+	
+	<div id="container">
+		<table>
+			<thead>
+				<tr>
+					<th>Risk Category</th>
+					<th>Risk</th>
+					<th>Narrative</th>
+					<th>action</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td id=1><select id="risk-category" class="not-null">
+							<option />
+							<option value="30485">30485</option>
+							<option value="46943">46943</option>
+							<option value="46944">46944</option>
+					</select></td>
+					<td id=2><select id="risk" class="not-null"></select></td>
+					<td id=3><textarea id="narrative" rows="1" cols="20" readonly></textarea></td>
+					<td id=4><button id="action-button" type="button"
+							onclick="javascript:deleteIt(this);">delete</button></td>
+					<td id=4><div class="error"></div></td>
+				</tr>
+			</tbody>
+		</table>
+		<a href="javascript:addFunction();">add</a>
+	</div>
+
+
+
+
+
+</body>
+</html>
